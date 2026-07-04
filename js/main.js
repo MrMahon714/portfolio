@@ -26,7 +26,7 @@ const navLinks     = $('nav-links');
 const hero         = $('hero');
 const root         = document.documentElement;
 
-let split    = 0.49;
+let split    = 0.5;
 let dragging = false;
 let raf      = null;
 let mode     = 'none';
@@ -204,5 +204,5 @@ const ageEl = $('hero-age');
 if (ageEl) ageEl.textContent = calcAge(2007, 1, 4);
 
 /* ── INIT ────────────────────────────────────────────────── */
-setSplit(0.51);
+setSplit(0.5);
 window.addEventListener('resize', () => setSplit(split), { passive: true });

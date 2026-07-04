@@ -30,7 +30,7 @@
   --font-display: 'Cormorant Garamond', Georgia, serif;
   --font-body:    'DM Sans', system-ui, sans-serif;
 
-  --split: 50%;
+  --split: 50.3%;
 }
 
 /* ── RESET ───────────────────────────────────────────────── */
@@ -120,7 +120,7 @@ a { color: inherit; text-decoration: none; }
 
 .panel--scholar {
   /* Show only LEFT of the split line */
-  clip-path: polygon(0 0, var(--split) 0, var(--split) 100%, 0 100%);
+  clip-path: polygon(0 0, var(--split)) 0, var(--split) 100%, 0 100%);
   z-index: 2;
 }
 
@@ -186,7 +186,7 @@ a { color: inherit; text-decoration: none; }
   left: 50%;
   transform: translateX(-50%);
   /* Height fills most of the viewport */
-  height: min(90vh, 780px);
+  height: min(80vh, 700px);
   width: auto;
   /* Preserve exact pixel rendering — no browser resizing artifacts */
   object-fit: contain;
