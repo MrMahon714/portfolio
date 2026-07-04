@@ -1,0 +1,724 @@
+/* anthonymahon.com — style.css v6 */
+
+/* ============================================================
+   anthonymahon.xyz — style.css v5
+
+   THE CORE TRICK:
+   Each panel (scholar=left, footballer=right) contains its OWN
+   copy of its figure image. The panel is clipped by clip-path
+   at --split. So the figure inside is also clipped at the same
+   line. Both figures are positioned IDENTICALLY (same size, same
+   center), so at 50/50 you see exactly the left half of the
+   scholar body and the right half of the footballer body —
+   appearing as ONE person split down the middle.
+   Dragging reveals more of one and conceals the other.
+============================================================ */
+
+/* ── TOKENS ──────────────────────────────────────────────── */
+:root {
+  --navy-scholar:    #0e1120;
+  --navy-footballer: #090e18;
+  --navy-mid:        #0b0f1a;
+  --navy-light:      #111827;
+  --ivory:           #f4f1eb;
+  --ink:             #18160f;
+  --gold:            #c4a35a;
+  --sky:             #5ab4d4;
+  --white:           #f0eee8;
+
+  --font-title:   'Playfair Display', Georgia, serif;
+  --font-display: 'Cormorant Garamond', Georgia, serif;
+  --font-body:    'DM Sans', system-ui, sans-serif;
+
+  --split: 50%;
+}
+
+/* ── RESET ───────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body {
+  font-family: var(--font-body);
+  background: var(--navy-mid);
+  color: var(--white);
+  overflow-x: hidden;
+}
+img { display: block; max-width: none; } /* max-width:none so figures can be sized freely */
+a { color: inherit; text-decoration: none; }
+
+
+/* ═══════════════════════════════════════════════════════════
+   HERO
+═══════════════════════════════════════════════════════════ */
+#hero {
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+  min-height: 560px;
+  overflow: hidden;
+  user-select: none;
+}
+
+
+/* ── NAME BANNER ─────────────────────────────────────────── */
+.hero__banner {
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  z-index: 30;
+  text-align: center;
+  padding: 2rem 2rem 5rem;
+  pointer-events: none;
+  background: linear-gradient(to bottom, rgba(9,14,24,0.75) 0%, transparent 100%);
+}
+
+.hero__name {
+  font-family: var(--font-title);
+  font-size: clamp(2rem, 4.8vw, 4.2rem);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: var(--white);
+  text-shadow: 0 2px 20px rgba(0,0,0,0.85);
+  line-height: 1;
+}
+
+.hero__meta {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.55rem;
+  margin-top: 0.5rem;
+  font-family: var(--font-body);
+  font-size: clamp(0.62rem, 1vw, 0.78rem);
+  font-weight: 300;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--white);
+  opacity: 0.48;
+}
+
+.sep { opacity: 0.3; }
+
+
+/* ── PANELS ──────────────────────────────────────────────────
+   CRITICAL: both panels are position:absolute, inset:0
+   (they fill the full hero). clip-path cuts each one at --split.
+   Scholar panel → everything LEFT of --split is visible.
+   Footballer panel → everything RIGHT of --split is visible.
+   Together they tile the hero with zero gap or overlap.
+
+   Each panel contains:
+   · .panel__bg   — the background color
+   · .panel__overlay — atmospheric gradient
+   · .panel__fig  — the figure image (also gets clipped)
+   · .panel__label — the identity text in the corner
+────────────────────────────────────────────────────────── */
+.panel {
+  position: absolute;
+  inset: 0;
+  overflow: hidden; /* clip children that extend beyond panel bounds */
+  transition: clip-path 0.04s linear;
+}
+
+.panel--scholar {
+  /* Show only LEFT of the split line */
+  clip-path: polygon(0 0, var(--split) 0, var(--split) 100%, 0 100%);
+  z-index: 2;
+}
+
+.panel--footballer {
+  /* Show only RIGHT of the split line */
+  clip-path: polygon(var(--split) 0, 100% 0, 100% 100%, var(--split) 100%);
+  z-index: 2;
+}
+
+/* Background color fills — solid navy per side */
+.panel__bg {
+  position: absolute;
+  inset: 0;
+}
+
+.panel__bg--scholar    { background: var(--navy-scholar); }
+.panel__bg--footballer { background: var(--navy-footballer); }
+
+/* Atmospheric overlays */
+.panel__overlay {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.panel__overlay--scholar {
+  background:
+    radial-gradient(ellipse 80% 70% at 25% 60%, rgba(196,163,90,0.10) 0%, transparent 100%),
+    linear-gradient(to right, rgba(14,17,32,0.4) 0%, transparent 80%);
+}
+
+.panel__overlay--footballer {
+  background:
+    radial-gradient(ellipse 80% 70% at 75% 60%, rgba(90,180,212,0.09) 0%, transparent 100%),
+    linear-gradient(to left, rgba(9,14,24,0.4) 0%, transparent 80%);
+}
+
+
+/* ── THE FIGURES ─────────────────────────────────────────────
+   This is the key to the whole effect.
+
+   Both .panel__fig images are positioned absolutely within
+   their parent panel. They use IDENTICAL positioning rules:
+   · bottom: 0 (feet at floor)
+   · left: 50% (anchor at horizontal center of the panel)
+   · transform: translateX(-50%) (shift left by half own width
+     so the image CENTER sits at the panel's horizontal center)
+
+   Wait — panels fill 100vw. So "left:50%" = 50% of 100vw = center
+   of the screen. And translateX(-50%) centers the image on that
+   point. Both figures are therefore centered on the exact same
+   point on screen.
+
+   Since the panels are clipped, each figure is only visible
+   within its panel's half. Scholar figure → left half visible.
+   Footballer figure → right half visible. They appear as ONE
+   body split at the divider.
+────────────────────────────────────────────────────────── */
+.panel__fig {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  /* Height fills most of the viewport */
+  height: min(90vh, 780px);
+  width: auto;
+  /* Preserve exact pixel rendering — no browser resizing artifacts */
+  object-fit: contain;
+  object-position: bottom center;
+  filter: drop-shadow(0 0 30px rgba(0,0,0,0.5));
+  z-index: 2;
+  /* No transition — must track drag instantly */
+  pointer-events: none;
+}
+
+
+/* ── PANEL LABELS ────────────────────────────────────────── */
+.panel__label {
+  position: absolute;
+  bottom: 2.2rem;
+  z-index: 5;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  transition: opacity 0.3s ease;
+}
+
+.panel__label--left  { left:  clamp(1.5rem, 4vw, 3rem); align-items: flex-start; }
+.panel__label--right { right: clamp(1.5rem, 4vw, 3rem); align-items: flex-end; text-align: right; }
+
+/* Fade label when panel is almost fully collapsed */
+.panel--scholar.is-collapsed   .panel__label,
+.panel--footballer.is-collapsed .panel__label {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.panel__role {
+  display: block;
+  font-family: var(--font-display);
+  color: var(--white);
+  text-shadow: 0 2px 18px rgba(0,0,0,0.7);
+  line-height: 1;
+}
+
+/* Scholar: light italic Cormorant — flowing, intellectual */
+.panel__role--scholar {
+  font-size: clamp(2.2rem, 4.5vw, 4rem);
+  font-weight: 300;
+  font-style: italic;
+  letter-spacing: 0.02em;
+}
+
+/* Footballer: semibold upright Cormorant — grounded, strong, NOT all-caps */
+.panel__role--footballer {
+  font-size: clamp(2.2rem, 4.5vw, 4rem);
+  font-weight: 600;
+  font-style: normal;
+  letter-spacing: 0.04em;
+}
+
+.panel__sub {
+  font-family: var(--font-body);
+  font-size: 0.72rem;
+  font-weight: 300;
+  letter-spacing: 0.06em;
+  opacity: 0.52;
+  margin-top: 0.1rem;
+}
+
+.panel__cta {
+  display: inline-block;
+  margin-top: 0.6rem;
+  padding: 0.38rem 1rem;
+  font-family: var(--font-body);
+  font-size: 0.67rem;
+  font-weight: 500;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  border: 1px solid rgba(255,255,255,0.2);
+  backdrop-filter: blur(8px);
+  transition: all 0.25s ease;
+  cursor: pointer;
+}
+
+.panel__cta--scholar:hover  { background: var(--gold); border-color: var(--gold); color: var(--ink); }
+.panel__cta--footballer:hover { background: var(--sky);  border-color: var(--sky);  color: var(--navy-footballer); }
+
+
+/* ── DIVIDER ─────────────────────────────────────────────── */
+.divider {
+  position: absolute;
+  top: 0; bottom: 0;
+  left: var(--split);
+  transform: translateX(-50%);
+  z-index: 20;
+  cursor: col-resize;
+  width: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.divider__track {
+  position: absolute;
+  top: 0; bottom: 0; left: 50%;
+  width: 1px;
+  transform: translateX(-50%);
+  background: rgba(255,255,255,0.18);
+  pointer-events: none;
+}
+
+.divider__handle {
+  position: relative; z-index: 1;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 0.3rem 0.6rem;
+  background: rgba(255,255,255,0.1);
+  border: 1px solid rgba(255,255,255,0.22);
+  border-radius: 999px;
+  backdrop-filter: blur(12px);
+  pointer-events: none;
+  transition: background 0.2s;
+}
+
+.divider:hover .divider__handle,
+.divider.is-dragging .divider__handle { background: rgba(255,255,255,0.22); }
+
+.divider__dot { width: 5px; height: 5px; border-radius: 50%; background: var(--white); opacity: 0.85; }
+.divider__arrow { font-size: 0.68rem; opacity: 0.5; line-height: 1; }
+
+.hero__hint {
+  position: absolute;
+  bottom: 1rem; left: 50%;
+  transform: translateX(-50%);
+  font-family: var(--font-body);
+  font-size: 0.6rem;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  opacity: 0;
+  pointer-events: none;
+  animation: hint 3.5s ease 1.8s forwards;
+  white-space: nowrap;
+  z-index: 25;
+}
+
+@keyframes hint {
+  0%   { opacity: 0; transform: translateX(-50%) translateY(4px); }
+  20%  { opacity: 0.4; transform: translateX(-50%) translateY(0); }
+  75%  { opacity: 0.4; }
+  100% { opacity: 0; }
+}
+
+
+/* ═══════════════════════════════════════════════════════════
+   NAVIGATION
+═══════════════════════════════════════════════════════════ */
+.nav {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 2rem;
+  opacity: 0;
+  pointer-events: none;
+  background: rgba(9,14,24,0.93);
+  backdrop-filter: blur(16px);
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+  transition: opacity 0.35s ease;
+}
+
+.nav.nav--visible { opacity: 1; pointer-events: all; }
+
+body.mode--footballer .nav { border-bottom-color: rgba(90,180,212,0.28); }
+body.mode--scholar    .nav { border-bottom-color: rgba(196,163,90,0.28); }
+
+.nav-logo {
+  font-family: var(--font-title);
+  font-size: 1.15rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  opacity: 0.8;
+}
+
+.nav-links { display: flex; gap: 2rem; align-items: center; }
+
+.nav-links a {
+  font-family: var(--font-body);
+  font-size: 0.7rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  font-weight: 400;
+  opacity: 0.5;
+  transition: opacity 0.2s;
+}
+
+.nav-links a:hover { opacity: 1; }
+.nav-links a.nav-reset { opacity: 0.75; }
+
+
+/* ═══════════════════════════════════════════════════════════
+   CONTENT VISIBILITY
+═══════════════════════════════════════════════════════════ */
+.content-block--footballer,
+.content-block--scholar { display: block; }
+
+body.mode--footballer .content-block--scholar    { display: none; }
+body.mode--footballer .content-block--footballer { display: block; }
+
+body.mode--scholar .content-block--footballer { display: none; }
+body.mode--scholar .content-block--scholar    { display: block; }
+
+
+/* ═══════════════════════════════════════════════════════════
+   SECTIONS
+═══════════════════════════════════════════════════════════ */
+.section { padding: 6rem 0; }
+.section--dark      { background: var(--navy-mid); }
+.section--dark-mid  { background: var(--navy-light); }
+.section--ivory     { background: var(--ivory); color: var(--ink); }
+.section--contact   { text-align: center; }
+
+.container { max-width: 1100px; margin: 0 auto; padding: 0 2rem; }
+.container--narrow  { max-width: 660px; }
+
+.eyebrow {
+  display: block;
+  font-family: var(--font-body);
+  font-size: 0.6rem;
+  font-weight: 500;
+  letter-spacing: 0.32em;
+  text-transform: uppercase;
+  margin-bottom: 0.6rem;
+}
+
+.eyebrow--footballer { color: var(--sky);  opacity: 0.75; }
+.eyebrow--scholar    { color: var(--gold); opacity: 0.8; }
+
+.section-title {
+  font-family: var(--font-display);
+  margin-bottom: 3rem;
+  line-height: 1.0;
+}
+
+.section-title--footballer {
+  font-size: clamp(2.2rem, 4.5vw, 3.8rem);
+  font-weight: 600;
+  font-style: normal;
+  letter-spacing: 0.03em;
+  color: var(--white);
+}
+
+.section-title--scholar {
+  font-size: clamp(2rem, 4.2vw, 3.6rem);
+  font-weight: 300;
+  font-style: italic;
+  letter-spacing: 0.02em;
+  color: var(--ink);
+}
+
+.two-col {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 3.5rem;
+  align-items: start;
+}
+
+.prose { display: flex; flex-direction: column; gap: 1.25rem; }
+.prose p { font-size: 0.92rem; line-height: 1.9; font-weight: 300; opacity: 0.82; }
+.prose--dark p { color: var(--ink); opacity: 0.78; }
+
+.info-card { padding: 1.7rem; border-radius: 2px; }
+.info-card--dark  { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06); }
+.info-card--light { background: rgba(0,0,0,0.04);       border: 1px solid rgba(0,0,0,0.09); }
+
+.info-card__heading {
+  font-family: var(--font-body);
+  font-size: 0.58rem;
+  font-weight: 500;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  opacity: 0.35;
+  margin-bottom: 1.4rem;
+}
+
+.info-card__heading--scholar { color: var(--ink); }
+
+.stat-list { list-style: none; }
+
+.stat-row {
+  display: grid;
+  grid-template-columns: 0.9fr 1.6fr;
+  gap: 0.75rem;
+  padding: 0.68rem 0;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+  align-items: baseline;
+}
+
+.stat-list--light .stat-row { border-bottom-color: rgba(0,0,0,0.07); }
+.stat-row:last-child { border-bottom: none; padding-bottom: 0; }
+
+.stat-row dt {
+  font-family: var(--font-body);
+  font-size: 0.6rem;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  opacity: 0.38;
+  font-weight: 500;
+}
+
+.stat-list--light dt { color: var(--ink); }
+.stat-row dd { font-size: 0.87rem; font-weight: 300; line-height: 1.45; }
+.stat-list--light dd { color: var(--ink); }
+
+/* VIDEO */
+.video-note { font-size: 0.76rem; opacity: 0.36; font-style: italic; margin-bottom: 1.2rem; }
+
+.video-wrap { position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden; background: #000; }
+.video-wrap iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: none; }
+
+/* CV */
+.cv { width: 100%; }
+
+.cv-head {
+  display: grid;
+  grid-template-columns: 2.4fr 1.4fr 0.8fr 1fr;
+  gap: 1rem;
+  padding: 0.4rem 0;
+  font-size: 0.57rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  opacity: 0.28;
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+  font-family: var(--font-body);
+  margin-bottom: 0.2rem;
+}
+
+.cv-row {
+  display: grid;
+  grid-template-columns: 2.4fr 1.4fr 0.8fr 1fr;
+  gap: 1rem;
+  padding: 0.88rem 0;
+  border-bottom: 1px solid rgba(255,255,255,0.04);
+  font-size: 0.88rem;
+  font-weight: 300;
+  align-items: center;
+  transition: padding-left 0.15s ease;
+}
+
+.cv-row:hover { padding-left: 0.5rem; }
+
+.badge {
+  font-size: 0.56rem; letter-spacing: 0.1em;
+  padding: 0.1rem 0.42rem; border-radius: 999px;
+  font-style: normal; font-weight: 500;
+  text-transform: uppercase; font-family: var(--font-body);
+  vertical-align: middle; margin-left: 0.4rem;
+}
+
+.badge--live { background: rgba(90,180,212,0.12); color: var(--sky); border: 1px solid rgba(90,180,212,0.2); }
+
+/* HONOURS */
+.honours-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 1px;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.04);
+}
+
+.honour-card {
+  background: var(--navy-light);
+  padding: 1.3rem 1.1rem;
+  display: flex; flex-direction: column; gap: 0.3rem;
+  transition: background 0.2s;
+}
+
+.honour-card:hover { background: rgba(90,180,212,0.05); }
+
+.honour-year {
+  font-family: var(--font-body);
+  font-size: 0.7rem; letter-spacing: 0.14em;
+  color: var(--sky); opacity: 0.7; text-transform: uppercase;
+}
+
+.honour-title { font-size: 0.86rem; font-weight: 400; color: var(--white); line-height: 1.35; }
+
+/* CONTACT */
+.contact-sub {
+  font-size: 0.88rem; opacity: 0.46; font-weight: 300;
+  line-height: 1.8; max-width: 480px; margin: 0 auto 2rem;
+}
+
+/* Gold email — as requested */
+.contact-email {
+  display: inline-block;
+  font-family: var(--font-display);
+  font-size: clamp(1.3rem, 2.8vw, 2.2rem);
+  font-weight: 300; font-style: italic; letter-spacing: 0.03em;
+  color: var(--gold);
+  border-bottom: 1px solid currentColor;
+  padding-bottom: 0.1em;
+  transition: opacity 0.2s;
+}
+
+.contact-email:hover { opacity: 0.6; }
+
+.contact-links { margin-top: 1.6rem; }
+
+.contact-link {
+  font-family: var(--font-body);
+  font-size: 0.7rem; letter-spacing: 0.18em;
+  text-transform: uppercase; opacity: 0.32; font-weight: 500;
+  transition: opacity 0.2s;
+}
+
+.contact-link:hover { opacity: 0.7; }
+.contact-fine { margin-top: 1.8rem; font-size: 0.74rem; opacity: 0.25; font-weight: 300; }
+
+/* FOOTER */
+.footer { background: #060a11; border-top: 1px solid rgba(255,255,255,0.04); padding: 1.5rem 2rem; }
+.footer-inner { max-width: 1100px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; }
+.footer-name { font-family: var(--font-display); font-size: 0.95rem; font-weight: 300; font-style: italic; opacity: 0.38; }
+.footer-right { font-size: 0.72rem; opacity: 0.25; font-weight: 300; }
+
+/* SCROLL REVEAL */
+.reveal { opacity: 0; transform: translateY(14px); transition: opacity 0.6s ease, transform 0.6s ease; }
+.reveal.is-visible { opacity: 1; transform: none; }
+
+/* ── FIGURE ALIGNMENT NOTE ───────────────────────────────────
+   Both figures are already pixel-perfectly centered at 50vw.
+   Face starts at y=0 in both PNGs (skin tone at top pixel).
+   DO NOT add translateX nudges — they cut the face off one side.
+
+   To adjust alignment manually, use these TWO knobs only:
+   1. Figure SIZE:  change height on .panel__fig (e.g. min(95vh, 840px))
+                    — makes both figures taller so face clears the banner
+   2. Figure HEIGHT offset: change bottom: 0 → bottom: -Npx on .panel__fig
+                    — shifts both figures up so more head shows above fold
+   Both changes apply to BOTH panels equally, preserving the split effect.
+─────────────────────────────────────────────────────────── */
+
+/* ── CV ENHANCED STYLES ──────────────────────────────────── */
+.cv-season-tag {
+  display: inline-block;
+  font-size: 0.56rem; letter-spacing: 0.12em;
+  padding: 0.12rem 0.5rem; border-radius: 2px;
+  font-weight: 500; text-transform: uppercase;
+  font-family: var(--font-body);
+  vertical-align: middle; margin-left: 0.4rem;
+  background: rgba(196,163,90,0.1); color: var(--gold);
+  border: 1px solid rgba(196,163,90,0.18);
+}
+.cv-row--pro { border-left: 2px solid var(--sky); padding-left: 0.75rem; }
+.cv-row--pro:hover { padding-left: 1.25rem; }
+.cv-stat-block { display: flex; flex-direction: column; gap: 0.15rem; }
+.cv-stat-primary { font-size: 0.88rem; font-weight: 400; color: var(--white); }
+.cv-stat-secondary { font-size: 0.7rem; opacity: 0.4; font-weight: 300; }
+
+/* ── VIDEO LIBRARY ───────────────────────────────────────── */
+.video-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 1.5rem;
+  margin-top: 2rem;
+}
+.video-card {
+  background: rgba(255,255,255,0.02);
+  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: 2px;
+  overflow: hidden;
+  transition: border-color 0.2s, transform 0.2s;
+}
+.video-card:hover { border-color: rgba(90,180,212,0.25); transform: translateY(-2px); }
+.video-card .video-wrap { margin: 0; }
+.video-card__meta { padding: 0.9rem 1rem; }
+.video-card__title { font-size: 0.85rem; font-weight: 400; color: var(--white); margin-bottom: 0.25rem; }
+.video-card__sub { font-size: 0.68rem; opacity: 0.38; font-weight: 300; letter-spacing: 0.06em; }
+.video-coming-soon {
+  display: flex; align-items: center; justify-content: center;
+  flex-direction: column; gap: 0.6rem;
+  min-height: 168px;
+  background: rgba(255,255,255,0.015);
+  border: 1px dashed rgba(255,255,255,0.1);
+  border-radius: 2px;
+}
+.video-coming-soon__label {
+  font-size: 0.6rem; letter-spacing: 0.28em; text-transform: uppercase;
+  opacity: 0.28; font-family: var(--font-body);
+}
+.video-coming-soon__title { font-size: 0.82rem; opacity: 0.45; font-weight: 300; }
+
+/* RESPONSIVE */
+@media (max-width: 860px) {
+  .two-col { grid-template-columns: 1fr; gap: 2rem; }
+  .cv-head, .cv-row { grid-template-columns: 1.8fr 1fr; }
+  .cv-head span:nth-child(3), .cv-head span:nth-child(4),
+  .cv-row  span:nth-child(3), .cv-row  span:nth-child(4) { display: none; }
+  .honours-grid { grid-template-columns: 1fr 1fr; }
+  .video-grid { grid-template-columns: 1fr; }
+}
+
+/* ── MOBILE HERO ─────────────────────────────────────────────
+   On narrow screens the split-screen concept is preserved but
+   the figures shrink and the labels are repositioned so nothing
+   overlaps. Below 480px the hero switches to a stacked portrait
+   mode: the divider runs horizontally and both figures are
+   readable at a glance.
+─────────────────────────────────────────────────────────── */
+@media (max-width: 560px) {
+  .hero__name { letter-spacing: 0.04em; font-size: clamp(1.5rem, 7vw, 2.2rem); }
+  .hero__meta { font-size: 0.6rem; }
+  .honours-grid { grid-template-columns: 1fr; }
+  .footer-inner { flex-direction: column; gap: 0.4rem; text-align: center; }
+
+  /* Shrink figures but keep split effect intact */
+  .panel__fig { height: min(72vh, 480px); }
+
+  /* Labels: stack closer to edges, smaller text */
+  .panel__label { bottom: 1.4rem; gap: 0.2rem; }
+  .panel__label--left  { left: 0.75rem; }
+  .panel__label--right { right: 0.75rem; }
+  .panel__role { font-size: clamp(1.5rem, 6vw, 2.2rem); }
+  .panel__sub  { font-size: 0.62rem; display: none; } /* hide subtitle on smallest screens */
+  .panel__cta  { font-size: 0.6rem; padding: 0.3rem 0.75rem; }
+
+  /* Divider handle: smaller grip */
+  .divider__handle { padding: 0.2rem 0.4rem; gap: 3px; }
+  .divider__dot { width: 4px; height: 4px; }
+}
+
+@media (max-width: 380px) {
+  /* Very small phones: reduce hero height slightly */
+  #hero { min-height: 480px; }
+  .panel__fig { height: min(68vh, 400px); }
+  .hero__name { font-size: 1.4rem; }
+}
